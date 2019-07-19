@@ -1,10 +1,15 @@
 {
   "name": "react-es-router",
-  "version": "0.0.3",
+  "version": "0.1.0",
   "description": "Minimal router for buildstep free React applications",
   "main": "src/index.js",
   "module": "src/index.js",
-  "keywords": ["react", "router", "browser", "esmodule"],
+  "keywords": [
+    "react",
+    "router",
+    "browser",
+    "esmodule"
+  ],
   "author": {
     "name": "Ábris Simon"
   },
