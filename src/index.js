@@ -1,8 +1,5 @@
 import { React } from "https://unpkg.com/es-react-production";
 import { createBrowserHistory } from "https://cdn.pika.dev/history/v4";
-import htm from 'https://cdn.pika.dev/htm/v2';
-
-const html = htm.bind(React.createElement);
 
 const RouterContext = React.createContext();
 
@@ -63,10 +60,10 @@ const Router = ({ children }) => {
     return canRoute ? child : lastChild;
   };
 
-  return (
-    html`<${RouterContext.Provider} value=${{ history, location }}>
-      ${renderChild()}
-    <//>`
+  return React.createElement(
+    RouterContext.Provider,
+    { value: { history, location } },
+    renderChild()
   );
 };
 
