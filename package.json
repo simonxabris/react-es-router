@@ -1,6 +1,6 @@
 {
   "name": "react-es-router",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Minimal router for buildstep free React applications",
   "main": "src/index.js",
   "module": "src/index.js",
