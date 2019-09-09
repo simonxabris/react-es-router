@@ -3,11 +3,18 @@ import { createBrowserHistory } from "https://cdn.pika.dev/history/v4";
 
 const RouterContext = React.createContext();
 
-const useRouter = () => {
+export const useRouter = () => {
   const context = React.useContext(RouterContext);
 
   const navigate = route => {
-    context.history.push(route);
+    if (context.cb && typeof context.cb === "function") {
+      const next = context.cb(route);
+      if (next) {
+        context.history.push(route);
+      }
+    } else {
+      context.history.push(route);
+    }
   };
 
   const route = context.location;
@@ -15,56 +22,98 @@ const useRouter = () => {
   return { route, navigate };
 };
 
-const Link = ({ to, children, element = "a", ...rest }) => {
+export const Link = ({ to, children, element = "a", ...rest }) => {
   const context = React.useContext(RouterContext);
 
-  const goTo = event => {
+  const goto = event => {
     event.preventDefault();
-    context.history.push(to);
+    if (context.cb && typeof context.cb === "function") {
+      const next = context.cb(to);
+      if (next) {
+        context.history.push(to);
+      }
+    } else {
+      context.history.push(to);
+    }
   };
 
   return React.createElement(
     element,
     {
       href: to,
-      onClick: goTo,
+      onClick: goto,
       ...rest
     },
     children
   );
 };
 
-const Router = ({ children }) => {
-  const history = createBrowserHistory();
+export const Route = ({ component, path, ...rest }) => {
+  return React.createElement(
+    "div",
+    {
+      ...rest
+    },
+    component
+  );
+};
+
+export default ({ baseUrl, cb, children }) => {
+  const history = createBrowserHistory({
+    basename: baseUrl
+  });
   const [location, setLocation] = React.useState(history.location.pathname);
 
   React.useEffect(() => {
     const unlisten = history.listen(location => {
       setLocation(location.pathname);
-		});
-		
-		return unlisten;
-	});
+    });
 
-	const renderChild = () => {
+    return unlisten;
+  });
+
+  const renderChild = () => {
+    const next = cb ? cb(location) : true;
+
+    if (!next) {
+      return children[children.length - 1];
+    }
+
     let canRoute = false;
-    const child = children.map(child => {
-      if (child.props.path === location) {
+    let ErrorComponent;
+    const nonRouteChildren = React.Children.map(children, child => {
+      if (!child.props.path) {
+        return child;
+      }
+    });
+
+    const RouteChildToRender = React.Children.map(children, child => {
+      if (
+        typeof child.type === "function" &&
+        child.props.path &&
+        child.props.path === "/error"
+      ) {
+        ErrorComponent = child;
+      }
+      if (
+        typeof child.type === "function" &&
+        child.props.path &&
+        child.props.path === location
+      ) {
         canRoute = true;
         return child;
       }
-		});
-		
-		const lastChild = children[children.length - 1];
+    });
 
-    return canRoute ? child : lastChild;
+    const route = [...nonRouteChildren, RouteChildToRender];
+
+    return canRoute ? route : ErrorComponent;
   };
 
   return React.createElement(
     RouterContext.Provider,
-    { value: { history, location } },
+    { value: { history, location, cb } },
     renderChild()
   );
 };
 
-export { Router, Link, useRouter};
