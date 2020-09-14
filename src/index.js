@@ -6,7 +6,7 @@ const RouterContext = React.createContext();
 export const useRouter = () => {
   const context = React.useContext(RouterContext);
 
-  const navigate = route => {
+  const navigate = (route) => {
     if (context.cb && typeof context.cb === "function") {
       const next = context.cb(route);
       if (next) {
@@ -25,7 +25,7 @@ export const useRouter = () => {
 export const Link = ({ to, children, element = "a", ...rest }) => {
   const context = React.useContext(RouterContext);
 
-  const goto = event => {
+  const goto = (event) => {
     event.preventDefault();
     if (context.cb && typeof context.cb === "function") {
       const next = context.cb(to);
@@ -42,9 +42,9 @@ export const Link = ({ to, children, element = "a", ...rest }) => {
     {
       href: to,
       onClick: goto,
-      ...rest
+      ...rest,
     },
-    children
+    children,
   );
 };
 
@@ -52,27 +52,27 @@ export const Route = ({ component, path, ...rest }) => {
   return React.createElement(
     "div",
     {
-      ...rest
+      ...rest,
     },
-    component
+    component,
   );
 };
 
-export default ({ baseUrl, cb, children }) => {
+export default ({ baseUrl = "/", cb, children }) => {
   const history = createBrowserHistory({
-    basename: baseUrl
+    basename: baseUrl,
   });
   const [location, setLocation] = React.useState(history.location.pathname);
 
   React.useEffect(() => {
-    const unlisten = history.listen(location => {
+    const unlisten = history.listen((location) => {
       setLocation(location.pathname);
     });
 
     return unlisten;
-  });
+  }, [history]);
 
-  const renderChild = () => {
+  const renderChildren = () => {
     const next = cb ? cb(location) : true;
 
     if (!next) {
@@ -81,13 +81,13 @@ export default ({ baseUrl, cb, children }) => {
 
     let canRoute = false;
     let ErrorComponent;
-    const nonRouteChildren = React.Children.map(children, child => {
+    const nonRouteChildren = React.Children.map(children, (child) => {
       if (!child.props.path) {
         return child;
       }
     });
 
-    const RouteChildToRender = React.Children.map(children, child => {
+    const RouteChildToRender = React.Children.map(children, (child) => {
       if (
         typeof child.type === "function" &&
         child.props.path &&
@@ -113,7 +113,6 @@ export default ({ baseUrl, cb, children }) => {
   return React.createElement(
     RouterContext.Provider,
     { value: { history, location, cb } },
-    renderChild()
+    renderChildren(),
   );
 };
-
